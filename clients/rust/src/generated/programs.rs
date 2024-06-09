@@ -7,5 +7,5 @@
 
 use solana_program::{pubkey, pubkey::Pubkey};
 
-/// `mpl_project_name` program ID.
-pub const MPL_PROJECT_NAME_ID: Pubkey = pubkey!("MyProgram1111111111111111111111111111111111");
+/// `bgl_migrator` program ID.
+pub const BGL_MIGRATOR_ID: Pubkey = pubkey!("M1GRRnVpm1aRp9GHtzktTzva9v2zz7ujcdCeUSS1Ju3");

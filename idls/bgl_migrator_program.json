@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "name": "mpl_project_name_program",
+  "name": "bgl_migrator_program",
   "instructions": [
     {
       "name": "Create",
@@ -166,7 +166,7 @@
   ],
   "metadata": {
     "origin": "shank",
-    "address": "MyProgram1111111111111111111111111111111111",
+    "address": "M1GRRnVpm1aRp9GHtzktTzva9v2zz7ujcdCeUSS1Ju3",
     "binaryVersion": "0.3.0",
     "libVersion": "0.3.0"
   }

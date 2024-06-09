@@ -13,22 +13,22 @@ import {
   PublicKey,
 } from '@metaplex-foundation/umi';
 import {
-  getMplProjectNameErrorFromCode,
-  getMplProjectNameErrorFromName,
+  getBglMigratorErrorFromCode,
+  getBglMigratorErrorFromName,
 } from '../errors';
 
-export const MPL_PROJECT_NAME_PROGRAM_ID =
-  'MyProgram1111111111111111111111111111111111' as PublicKey<'MyProgram1111111111111111111111111111111111'>;
+export const BGL_MIGRATOR_PROGRAM_ID =
+  'M1GRRnVpm1aRp9GHtzktTzva9v2zz7ujcdCeUSS1Ju3' as PublicKey<'M1GRRnVpm1aRp9GHtzktTzva9v2zz7ujcdCeUSS1Ju3'>;
 
-export function createMplProjectNameProgram(): Program {
+export function createBglMigratorProgram(): Program {
   return {
-    name: 'mplProjectName',
-    publicKey: MPL_PROJECT_NAME_PROGRAM_ID,
+    name: 'bglMigrator',
+    publicKey: BGL_MIGRATOR_PROGRAM_ID,
     getErrorFromCode(code: number, cause?: Error) {
-      return getMplProjectNameErrorFromCode(code, this, cause);
+      return getBglMigratorErrorFromCode(code, this, cause);
     },
     getErrorFromName(name: string, cause?: Error) {
-      return getMplProjectNameErrorFromName(name, this, cause);
+      return getBglMigratorErrorFromName(name, this, cause);
     },
     isOnCluster() {
       return true;
@@ -36,20 +36,20 @@ export function createMplProjectNameProgram(): Program {
   };
 }
 
-export function getMplProjectNameProgram<T extends Program = Program>(
+export function getBglMigratorProgram<T extends Program = Program>(
   context: Pick<Context, 'programs'>,
   clusterFilter?: ClusterFilter
 ): T {
-  return context.programs.get<T>('mplProjectName', clusterFilter);
+  return context.programs.get<T>('bglMigrator', clusterFilter);
 }
 
-export function getMplProjectNameProgramId(
+export function getBglMigratorProgramId(
   context: Pick<Context, 'programs'>,
   clusterFilter?: ClusterFilter
 ): PublicKey {
   return context.programs.getPublicKey(
-    'mplProjectName',
-    MPL_PROJECT_NAME_PROGRAM_ID,
+    'bglMigrator',
+    BGL_MIGRATOR_PROGRAM_ID,
     clusterFilter
   );
 }

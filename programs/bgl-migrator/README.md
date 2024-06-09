@@ -1,6 +1,6 @@
-# Mpl Project Name
+# Bgl Migrator
 
-My project description
+Convert other standards to Metaplex Core.
 
 ## Building
 
