@@ -1,7 +1,7 @@
 #!/bin/bash
 
-EXTERNAL_ID=("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s" "noopb9bkMVfRPU8AsbpTUg8AQkHtKwMYZiFUjNRtMmV")
-EXTERNAL_SO=("mpl_token_metadata.so" "spl_noop.so")
+EXTERNAL_ID=("CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d" "auth9SigNpDKz4sJJ1DfCTuZrZNSAgh9sFD3rboVmgg" "SysExL2WDyJi9aRZrXorrjHJut3JwHQ7R9bTyctbNNG" "TokExjvjJmhKaRBShsBAsbSvEWMA1AgUNK7ps4SAc2p" "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb" "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL" "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s" "noopb9bkMVfRPU8AsbpTUg8AQkHtKwMYZiFUjNRtMmV")
+EXTERNAL_SO=("mpl_core.so" "mpl_token_auth_rules.so" "mpl_system_extras.so" "mpl_token_extras.so" "spl_token_2022.so" "spl_associated_token_account.so" "mpl_token_metadata.so" "spl_noop.so")
 
 # output colours
 RED() { echo $'\e[1;31m'$1$'\e[0m'; }

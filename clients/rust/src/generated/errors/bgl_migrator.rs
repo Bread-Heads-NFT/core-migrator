@@ -19,6 +19,30 @@ pub enum BglMigratorError {
     /// 2 (0x2) - Error serializing account
     #[error("Error serializing account")]
     SerializationError,
+    /// 3 (0x3) - Invalid MPL Core Program
+    #[error("Invalid MPL Core Program")]
+    InvalidMplCoreProgram,
+    /// 4 (0x4) - Invalid old collection account owner
+    #[error("Invalid old collection account owner")]
+    InvalidOldCollectionAccountOwner,
+    /// 5 (0x5) - Authority must sign
+    #[error("Authority must sign")]
+    AuthorityMustSign,
+    /// 6 (0x6) - Update authority must sign
+    #[error("Update authority must sign")]
+    UpdateAuthorityMustSign,
+    /// 7 (0x7) - Invalid new collection account
+    #[error("Invalid new collection account")]
+    InvalidNewCollectionAccount,
+    /// 8 (0x8) - Invalid Token Metadata Program
+    #[error("Invalid Token Metadata Program")]
+    InvalidTokenMetadataProgram,
+    /// 9 (0x9) - Incorrect Update Authority
+    #[error("Incorrect Update Authority")]
+    IncorrectUpdateAuthority,
+    /// 10 (0xA) - Numerical Overflow
+    #[error("Numerical Overflow")]
+    NumericalOverflow,
 }
 
 impl solana_program::program_error::PrintProgramError for BglMigratorError {

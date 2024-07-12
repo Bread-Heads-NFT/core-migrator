@@ -3,22 +3,22 @@
   "name": "bgl_migrator_program",
   "instructions": [
     {
-      "name": "Create",
+      "name": "StartTokenMetadata",
       "accounts": [
         {
-          "name": "address",
-          "isMut": true,
-          "isSigner": true,
-          "docs": [
-            "The address of the new account"
-          ]
-        },
-        {
-          "name": "authority",
+          "name": "tmCollectionMetadata",
           "isMut": false,
           "isSigner": false,
           "docs": [
-            "The authority of the new account"
+            "The collection metadata account of the old collection"
+          ]
+        },
+        {
+          "name": "coreCollection",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "The new collection account; this is a pda of the old collection mint address"
           ]
         },
         {
@@ -30,120 +30,174 @@
           ]
         },
         {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true,
+          "isOptional": true,
+          "docs": [
+            "The update authority for the old and new collection, if different from the payer"
+          ]
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
           "docs": [
             "The system program"
           ]
-        }
-      ],
-      "args": [
+        },
         {
-          "name": "createArgs",
-          "type": {
-            "defined": "CreateArgs"
-          }
+          "name": "mplCore",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "The MPL Core program"
+          ]
         }
       ],
+      "args": [],
       "discriminant": {
         "type": "u8",
         "value": 0
       }
-    }
-  ],
-  "accounts": [
-    {
-      "name": "MyAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "key",
-            "type": {
-              "defined": "Key"
-            }
-          },
-          {
-            "name": "authority",
-            "type": "publicKey"
-          },
-          {
-            "name": "data",
-            "type": {
-              "defined": "MyData"
-            }
-          }
-        ]
-      }
     },
     {
-      "name": "MyPdaAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "key",
-            "type": {
-              "defined": "Key"
-            }
-          },
-          {
-            "name": "bump",
-            "type": "u8"
-          }
-        ]
-      }
-    }
-  ],
-  "types": [
-    {
-      "name": "CreateArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "arg1",
-            "type": "u16"
-          },
-          {
-            "name": "arg2",
-            "type": "u32"
-          }
-        ]
-      }
-    },
-    {
-      "name": "MyData",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "field1",
-            "type": "u16"
-          },
-          {
-            "name": "field2",
-            "type": "u32"
-          }
-        ]
-      }
-    },
-    {
-      "name": "Key",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Uninitialized"
-          },
-          {
-            "name": "MyAccount"
-          },
-          {
-            "name": "MyPdaAccount"
-          }
-        ]
+      "name": "MigrateTokenMetadata",
+      "accounts": [
+        {
+          "name": "collectionMetadata",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Metadata of the Collection"
+          ]
+        },
+        {
+          "name": "metadata",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Metadata (pda of ['metadata', program id, mint id])"
+          ]
+        },
+        {
+          "name": "edition",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Edition of the asset"
+          ]
+        },
+        {
+          "name": "mint",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Mint of token asset"
+          ]
+        },
+        {
+          "name": "token",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Token account to close"
+          ]
+        },
+        {
+          "name": "tokenRecord",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true,
+          "docs": [
+            "Token record account"
+          ]
+        },
+        {
+          "name": "asset",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "The address of the new asset"
+          ]
+        },
+        {
+          "name": "collection",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "The collection to which the asset belongs"
+          ]
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "The account paying for the storage fees"
+          ]
+        },
+        {
+          "name": "programSigner",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "The program signer account"
+          ]
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "The update authority for the old collection"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "System program"
+          ]
+        },
+        {
+          "name": "sysvarInstructions",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Instructions sysvar account"
+          ]
+        },
+        {
+          "name": "splTokenProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "SPL Token Program"
+          ]
+        },
+        {
+          "name": "mplCore",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "The MPL Core program"
+          ]
+        },
+        {
+          "name": "mplTokenMetadata",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "The MPL Token Metadata program"
+          ]
+        }
+      ],
+      "args": [],
+      "discriminant": {
+        "type": "u8",
+        "value": 1
       }
     }
   ],
@@ -162,12 +216,52 @@
       "code": 2,
       "name": "SerializationError",
       "msg": "Error serializing account"
+    },
+    {
+      "code": 3,
+      "name": "InvalidMplCoreProgram",
+      "msg": "Invalid MPL Core Program"
+    },
+    {
+      "code": 4,
+      "name": "InvalidOldCollectionAccountOwner",
+      "msg": "Invalid old collection account owner"
+    },
+    {
+      "code": 5,
+      "name": "AuthorityMustSign",
+      "msg": "Authority must sign"
+    },
+    {
+      "code": 6,
+      "name": "UpdateAuthorityMustSign",
+      "msg": "Update authority must sign"
+    },
+    {
+      "code": 7,
+      "name": "InvalidNewCollectionAccount",
+      "msg": "Invalid new collection account"
+    },
+    {
+      "code": 8,
+      "name": "InvalidTokenMetadataProgram",
+      "msg": "Invalid Token Metadata Program"
+    },
+    {
+      "code": 9,
+      "name": "IncorrectUpdateAuthority",
+      "msg": "Incorrect Update Authority"
+    },
+    {
+      "code": 10,
+      "name": "NumericalOverflow",
+      "msg": "Numerical Overflow"
     }
   ],
   "metadata": {
     "origin": "shank",
     "address": "M1GRRnVpm1aRp9GHtzktTzva9v2zz7ujcdCeUSS1Ju3",
-    "binaryVersion": "0.3.0",
-    "libVersion": "0.3.0"
+    "binaryVersion": "0.4.2",
+    "libVersion": "0.4.2"
   }
 }

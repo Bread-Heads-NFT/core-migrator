@@ -5,6 +5,8 @@
 //! [https://github.com/metaplex-foundation/kinobi]
 //!
 
-pub(crate) mod r#create;
+pub(crate) mod r#migrate_token_metadata;
+pub(crate) mod r#start_token_metadata;
 
-pub use self::r#create::*;
+pub use self::r#migrate_token_metadata::*;
+pub use self::r#start_token_metadata::*;

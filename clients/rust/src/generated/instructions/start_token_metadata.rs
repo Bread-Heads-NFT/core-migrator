@@ -9,50 +9,64 @@ use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 
 /// Accounts.
-pub struct Create {
-    /// The address of the new account
-    pub address: solana_program::pubkey::Pubkey,
-    /// The authority of the new account
-    pub authority: solana_program::pubkey::Pubkey,
+pub struct StartTokenMetadata {
+    /// The collection metadata account of the old collection
+    pub tm_collection_metadata: solana_program::pubkey::Pubkey,
+    /// The new collection account; this is a pda of the old collection mint address
+    pub core_collection: solana_program::pubkey::Pubkey,
     /// The account paying for the storage fees
     pub payer: solana_program::pubkey::Pubkey,
+    /// The update authority for the old and new collection, if different from the payer
+    pub authority: Option<solana_program::pubkey::Pubkey>,
     /// The system program
     pub system_program: solana_program::pubkey::Pubkey,
+    /// The MPL Core program
+    pub mpl_core: solana_program::pubkey::Pubkey,
 }
 
-impl Create {
-    pub fn instruction(
-        &self,
-        args: CreateInstructionArgs,
-    ) -> solana_program::instruction::Instruction {
-        self.instruction_with_remaining_accounts(args, &[])
+impl StartTokenMetadata {
+    pub fn instruction(&self) -> solana_program::instruction::Instruction {
+        self.instruction_with_remaining_accounts(&[])
     }
     #[allow(clippy::vec_init_then_push)]
     pub fn instruction_with_remaining_accounts(
         &self,
-        args: CreateInstructionArgs,
         remaining_accounts: &[solana_program::instruction::AccountMeta],
     ) -> solana_program::instruction::Instruction {
-        let mut accounts = Vec::with_capacity(4 + remaining_accounts.len());
-        accounts.push(solana_program::instruction::AccountMeta::new(
-            self.address,
-            true,
-        ));
+        let mut accounts = Vec::with_capacity(6 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            self.authority,
+            self.tm_collection_metadata,
+            false,
+        ));
+        accounts.push(solana_program::instruction::AccountMeta::new(
+            self.core_collection,
             false,
         ));
         accounts.push(solana_program::instruction::AccountMeta::new(
             self.payer, true,
         ));
+        if let Some(authority) = self.authority {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                authority, true,
+            ));
+        } else {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                crate::BGL_MIGRATOR_ID,
+                false,
+            ));
+        }
         accounts.push(solana_program::instruction::AccountMeta::new_readonly(
             self.system_program,
             false,
         ));
+        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            self.mpl_core,
+            false,
+        ));
         accounts.extend_from_slice(remaining_accounts);
-        let mut data = CreateInstructionData::new().try_to_vec().unwrap();
-        let mut args = args.try_to_vec().unwrap();
-        data.append(&mut args);
+        let data = StartTokenMetadataInstructionData::new()
+            .try_to_vec()
+            .unwrap();
 
         solana_program::instruction::Instruction {
             program_id: crate::BGL_MIGRATOR_ID,
@@ -63,62 +77,70 @@ impl Create {
 }
 
 #[derive(BorshDeserialize, BorshSerialize)]
-struct CreateInstructionData {
+pub struct StartTokenMetadataInstructionData {
     discriminator: u8,
 }
 
-impl CreateInstructionData {
-    fn new() -> Self {
+impl StartTokenMetadataInstructionData {
+    pub fn new() -> Self {
         Self { discriminator: 0 }
     }
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct CreateInstructionArgs {
-    pub arg1: u16,
-    pub arg2: u32,
-}
-
-/// Instruction builder for `Create`.
+/// Instruction builder for `StartTokenMetadata`.
 ///
 /// ### Accounts:
 ///
-///   0. `[writable, signer]` address
-///   1. `[]` authority
+///   0. `[]` tm_collection_metadata
+///   1. `[writable]` core_collection
 ///   2. `[writable, signer]` payer
-///   3. `[optional]` system_program (default to `11111111111111111111111111111111`)
+///   3. `[signer, optional]` authority
+///   4. `[optional]` system_program (default to `11111111111111111111111111111111`)
+///   5. `[optional]` mpl_core (default to `CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d`)
 #[derive(Default)]
-pub struct CreateBuilder {
-    address: Option<solana_program::pubkey::Pubkey>,
-    authority: Option<solana_program::pubkey::Pubkey>,
+pub struct StartTokenMetadataBuilder {
+    tm_collection_metadata: Option<solana_program::pubkey::Pubkey>,
+    core_collection: Option<solana_program::pubkey::Pubkey>,
     payer: Option<solana_program::pubkey::Pubkey>,
+    authority: Option<solana_program::pubkey::Pubkey>,
     system_program: Option<solana_program::pubkey::Pubkey>,
-    arg1: Option<u16>,
-    arg2: Option<u32>,
+    mpl_core: Option<solana_program::pubkey::Pubkey>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
 
-impl CreateBuilder {
+impl StartTokenMetadataBuilder {
     pub fn new() -> Self {
         Self::default()
     }
-    /// The address of the new account
+    /// The collection metadata account of the old collection
     #[inline(always)]
-    pub fn address(&mut self, address: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.address = Some(address);
+    pub fn tm_collection_metadata(
+        &mut self,
+        tm_collection_metadata: solana_program::pubkey::Pubkey,
+    ) -> &mut Self {
+        self.tm_collection_metadata = Some(tm_collection_metadata);
         self
     }
-    /// The authority of the new account
+    /// The new collection account; this is a pda of the old collection mint address
     #[inline(always)]
-    pub fn authority(&mut self, authority: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.authority = Some(authority);
+    pub fn core_collection(
+        &mut self,
+        core_collection: solana_program::pubkey::Pubkey,
+    ) -> &mut Self {
+        self.core_collection = Some(core_collection);
         self
     }
     /// The account paying for the storage fees
     #[inline(always)]
     pub fn payer(&mut self, payer: solana_program::pubkey::Pubkey) -> &mut Self {
         self.payer = Some(payer);
+        self
+    }
+    /// `[optional account]`
+    /// The update authority for the old and new collection, if different from the payer
+    #[inline(always)]
+    pub fn authority(&mut self, authority: Option<solana_program::pubkey::Pubkey>) -> &mut Self {
+        self.authority = authority;
         self
     }
     /// `[optional account, default to '11111111111111111111111111111111']`
@@ -128,14 +150,11 @@ impl CreateBuilder {
         self.system_program = Some(system_program);
         self
     }
+    /// `[optional account, default to 'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d']`
+    /// The MPL Core program
     #[inline(always)]
-    pub fn arg1(&mut self, arg1: u16) -> &mut Self {
-        self.arg1 = Some(arg1);
-        self
-    }
-    #[inline(always)]
-    pub fn arg2(&mut self, arg2: u32) -> &mut Self {
-        self.arg2 = Some(arg2);
+    pub fn mpl_core(&mut self, mpl_core: solana_program::pubkey::Pubkey) -> &mut Self {
+        self.mpl_core = Some(mpl_core);
         self
     }
     /// Add an aditional account to the instruction.
@@ -158,64 +177,72 @@ impl CreateBuilder {
     }
     #[allow(clippy::clone_on_copy)]
     pub fn instruction(&self) -> solana_program::instruction::Instruction {
-        let accounts = Create {
-            address: self.address.expect("address is not set"),
-            authority: self.authority.expect("authority is not set"),
+        let accounts = StartTokenMetadata {
+            tm_collection_metadata: self
+                .tm_collection_metadata
+                .expect("tm_collection_metadata is not set"),
+            core_collection: self.core_collection.expect("core_collection is not set"),
             payer: self.payer.expect("payer is not set"),
+            authority: self.authority,
             system_program: self
                 .system_program
                 .unwrap_or(solana_program::pubkey!("11111111111111111111111111111111")),
-        };
-        let args = CreateInstructionArgs {
-            arg1: self.arg1.clone().expect("arg1 is not set"),
-            arg2: self.arg2.clone().expect("arg2 is not set"),
+            mpl_core: self.mpl_core.unwrap_or(solana_program::pubkey!(
+                "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
+            )),
         };
 
-        accounts.instruction_with_remaining_accounts(args, &self.__remaining_accounts)
+        accounts.instruction_with_remaining_accounts(&self.__remaining_accounts)
     }
 }
 
-/// `create` CPI accounts.
-pub struct CreateCpiAccounts<'a, 'b> {
-    /// The address of the new account
-    pub address: &'b solana_program::account_info::AccountInfo<'a>,
-    /// The authority of the new account
-    pub authority: &'b solana_program::account_info::AccountInfo<'a>,
+/// `start_token_metadata` CPI accounts.
+pub struct StartTokenMetadataCpiAccounts<'a, 'b> {
+    /// The collection metadata account of the old collection
+    pub tm_collection_metadata: &'b solana_program::account_info::AccountInfo<'a>,
+    /// The new collection account; this is a pda of the old collection mint address
+    pub core_collection: &'b solana_program::account_info::AccountInfo<'a>,
     /// The account paying for the storage fees
     pub payer: &'b solana_program::account_info::AccountInfo<'a>,
+    /// The update authority for the old and new collection, if different from the payer
+    pub authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     /// The system program
     pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
+    /// The MPL Core program
+    pub mpl_core: &'b solana_program::account_info::AccountInfo<'a>,
 }
 
-/// `create` CPI instruction.
-pub struct CreateCpi<'a, 'b> {
+/// `start_token_metadata` CPI instruction.
+pub struct StartTokenMetadataCpi<'a, 'b> {
     /// The program to invoke.
     pub __program: &'b solana_program::account_info::AccountInfo<'a>,
-    /// The address of the new account
-    pub address: &'b solana_program::account_info::AccountInfo<'a>,
-    /// The authority of the new account
-    pub authority: &'b solana_program::account_info::AccountInfo<'a>,
+    /// The collection metadata account of the old collection
+    pub tm_collection_metadata: &'b solana_program::account_info::AccountInfo<'a>,
+    /// The new collection account; this is a pda of the old collection mint address
+    pub core_collection: &'b solana_program::account_info::AccountInfo<'a>,
     /// The account paying for the storage fees
     pub payer: &'b solana_program::account_info::AccountInfo<'a>,
+    /// The update authority for the old and new collection, if different from the payer
+    pub authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     /// The system program
     pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
-    /// The arguments for the instruction.
-    pub __args: CreateInstructionArgs,
+    /// The MPL Core program
+    pub mpl_core: &'b solana_program::account_info::AccountInfo<'a>,
 }
 
-impl<'a, 'b> CreateCpi<'a, 'b> {
+impl<'a, 'b> StartTokenMetadataCpi<'a, 'b> {
     pub fn new(
         program: &'b solana_program::account_info::AccountInfo<'a>,
-        accounts: CreateCpiAccounts<'a, 'b>,
-        args: CreateInstructionArgs,
+        accounts: StartTokenMetadataCpiAccounts<'a, 'b>,
     ) -> Self {
         Self {
             __program: program,
-            address: accounts.address,
-            authority: accounts.authority,
+            tm_collection_metadata: accounts.tm_collection_metadata,
+            core_collection: accounts.core_collection,
             payer: accounts.payer,
+            authority: accounts.authority,
             system_program: accounts.system_program,
-            __args: args,
+            mpl_core: accounts.mpl_core,
         }
     }
     #[inline(always)]
@@ -251,21 +278,36 @@ impl<'a, 'b> CreateCpi<'a, 'b> {
             bool,
         )],
     ) -> solana_program::entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(4 + remaining_accounts.len());
-        accounts.push(solana_program::instruction::AccountMeta::new(
-            *self.address.key,
-            true,
-        ));
+        let mut accounts = Vec::with_capacity(6 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            *self.authority.key,
+            *self.tm_collection_metadata.key,
+            false,
+        ));
+        accounts.push(solana_program::instruction::AccountMeta::new(
+            *self.core_collection.key,
             false,
         ));
         accounts.push(solana_program::instruction::AccountMeta::new(
             *self.payer.key,
             true,
         ));
+        if let Some(authority) = self.authority {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                *authority.key,
+                true,
+            ));
+        } else {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                crate::BGL_MIGRATOR_ID,
+                false,
+            ));
+        }
         accounts.push(solana_program::instruction::AccountMeta::new_readonly(
             *self.system_program.key,
+            false,
+        ));
+        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            *self.mpl_core.key,
             false,
         ));
         remaining_accounts.iter().for_each(|remaining_account| {
@@ -275,21 +317,25 @@ impl<'a, 'b> CreateCpi<'a, 'b> {
                 is_writable: remaining_account.2,
             })
         });
-        let mut data = CreateInstructionData::new().try_to_vec().unwrap();
-        let mut args = self.__args.try_to_vec().unwrap();
-        data.append(&mut args);
+        let data = StartTokenMetadataInstructionData::new()
+            .try_to_vec()
+            .unwrap();
 
         let instruction = solana_program::instruction::Instruction {
             program_id: crate::BGL_MIGRATOR_ID,
             accounts,
             data,
         };
-        let mut account_infos = Vec::with_capacity(4 + 1 + remaining_accounts.len());
+        let mut account_infos = Vec::with_capacity(6 + 1 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
-        account_infos.push(self.address.clone());
-        account_infos.push(self.authority.clone());
+        account_infos.push(self.tm_collection_metadata.clone());
+        account_infos.push(self.core_collection.clone());
         account_infos.push(self.payer.clone());
+        if let Some(authority) = self.authority {
+            account_infos.push(authority.clone());
+        }
         account_infos.push(self.system_program.clone());
+        account_infos.push(self.mpl_core.clone());
         remaining_accounts
             .iter()
             .for_each(|remaining_account| account_infos.push(remaining_account.0.clone()));
@@ -302,54 +348,66 @@ impl<'a, 'b> CreateCpi<'a, 'b> {
     }
 }
 
-/// Instruction builder for `Create` via CPI.
+/// Instruction builder for `StartTokenMetadata` via CPI.
 ///
 /// ### Accounts:
 ///
-///   0. `[writable, signer]` address
-///   1. `[]` authority
+///   0. `[]` tm_collection_metadata
+///   1. `[writable]` core_collection
 ///   2. `[writable, signer]` payer
-///   3. `[]` system_program
-pub struct CreateCpiBuilder<'a, 'b> {
-    instruction: Box<CreateCpiBuilderInstruction<'a, 'b>>,
+///   3. `[signer, optional]` authority
+///   4. `[]` system_program
+///   5. `[]` mpl_core
+pub struct StartTokenMetadataCpiBuilder<'a, 'b> {
+    instruction: Box<StartTokenMetadataCpiBuilderInstruction<'a, 'b>>,
 }
 
-impl<'a, 'b> CreateCpiBuilder<'a, 'b> {
+impl<'a, 'b> StartTokenMetadataCpiBuilder<'a, 'b> {
     pub fn new(program: &'b solana_program::account_info::AccountInfo<'a>) -> Self {
-        let instruction = Box::new(CreateCpiBuilderInstruction {
+        let instruction = Box::new(StartTokenMetadataCpiBuilderInstruction {
             __program: program,
-            address: None,
-            authority: None,
+            tm_collection_metadata: None,
+            core_collection: None,
             payer: None,
+            authority: None,
             system_program: None,
-            arg1: None,
-            arg2: None,
+            mpl_core: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
     }
-    /// The address of the new account
+    /// The collection metadata account of the old collection
     #[inline(always)]
-    pub fn address(
+    pub fn tm_collection_metadata(
         &mut self,
-        address: &'b solana_program::account_info::AccountInfo<'a>,
+        tm_collection_metadata: &'b solana_program::account_info::AccountInfo<'a>,
     ) -> &mut Self {
-        self.instruction.address = Some(address);
+        self.instruction.tm_collection_metadata = Some(tm_collection_metadata);
         self
     }
-    /// The authority of the new account
+    /// The new collection account; this is a pda of the old collection mint address
     #[inline(always)]
-    pub fn authority(
+    pub fn core_collection(
         &mut self,
-        authority: &'b solana_program::account_info::AccountInfo<'a>,
+        core_collection: &'b solana_program::account_info::AccountInfo<'a>,
     ) -> &mut Self {
-        self.instruction.authority = Some(authority);
+        self.instruction.core_collection = Some(core_collection);
         self
     }
     /// The account paying for the storage fees
     #[inline(always)]
     pub fn payer(&mut self, payer: &'b solana_program::account_info::AccountInfo<'a>) -> &mut Self {
         self.instruction.payer = Some(payer);
+        self
+    }
+    /// `[optional account]`
+    /// The update authority for the old and new collection, if different from the payer
+    #[inline(always)]
+    pub fn authority(
+        &mut self,
+        authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    ) -> &mut Self {
+        self.instruction.authority = authority;
         self
     }
     /// The system program
@@ -361,14 +419,13 @@ impl<'a, 'b> CreateCpiBuilder<'a, 'b> {
         self.instruction.system_program = Some(system_program);
         self
     }
+    /// The MPL Core program
     #[inline(always)]
-    pub fn arg1(&mut self, arg1: u16) -> &mut Self {
-        self.instruction.arg1 = Some(arg1);
-        self
-    }
-    #[inline(always)]
-    pub fn arg2(&mut self, arg2: u32) -> &mut Self {
-        self.instruction.arg2 = Some(arg2);
+    pub fn mpl_core(
+        &mut self,
+        mpl_core: &'b solana_program::account_info::AccountInfo<'a>,
+    ) -> &mut Self {
+        self.instruction.mpl_core = Some(mpl_core);
         self
     }
     /// Add an additional account to the instruction.
@@ -412,24 +469,29 @@ impl<'a, 'b> CreateCpiBuilder<'a, 'b> {
         &self,
         signers_seeds: &[&[&[u8]]],
     ) -> solana_program::entrypoint::ProgramResult {
-        let args = CreateInstructionArgs {
-            arg1: self.instruction.arg1.clone().expect("arg1 is not set"),
-            arg2: self.instruction.arg2.clone().expect("arg2 is not set"),
-        };
-        let instruction = CreateCpi {
+        let instruction = StartTokenMetadataCpi {
             __program: self.instruction.__program,
 
-            address: self.instruction.address.expect("address is not set"),
+            tm_collection_metadata: self
+                .instruction
+                .tm_collection_metadata
+                .expect("tm_collection_metadata is not set"),
 
-            authority: self.instruction.authority.expect("authority is not set"),
+            core_collection: self
+                .instruction
+                .core_collection
+                .expect("core_collection is not set"),
 
             payer: self.instruction.payer.expect("payer is not set"),
+
+            authority: self.instruction.authority,
 
             system_program: self
                 .instruction
                 .system_program
                 .expect("system_program is not set"),
-            __args: args,
+
+            mpl_core: self.instruction.mpl_core.expect("mpl_core is not set"),
         };
         instruction.invoke_signed_with_remaining_accounts(
             signers_seeds,
@@ -438,14 +500,14 @@ impl<'a, 'b> CreateCpiBuilder<'a, 'b> {
     }
 }
 
-struct CreateCpiBuilderInstruction<'a, 'b> {
+struct StartTokenMetadataCpiBuilderInstruction<'a, 'b> {
     __program: &'b solana_program::account_info::AccountInfo<'a>,
-    address: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    tm_collection_metadata: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    core_collection: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     payer: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    arg1: Option<u16>,
-    arg2: Option<u32>,
+    mpl_core: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(
         &'b solana_program::account_info::AccountInfo<'a>,

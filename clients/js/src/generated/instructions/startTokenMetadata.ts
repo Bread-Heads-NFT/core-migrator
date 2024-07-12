@@ -7,23 +7,20 @@
  */
 
 import {
-  ACCOUNT_HEADER_SIZE,
   Context,
   Pda,
   PublicKey,
   Signer,
   TransactionBuilder,
+  publicKey,
   transactionBuilder,
 } from '@metaplex-foundation/umi';
 import {
   Serializer,
   mapSerializer,
   struct,
-  u16,
-  u32,
   u8,
 } from '@metaplex-foundation/umi/serializers';
-import { getMyAccountSize } from '../accounts';
 import {
   ResolvedAccount,
   ResolvedAccountsWithIndices,
@@ -31,50 +28,49 @@ import {
 } from '../shared';
 
 // Accounts.
-export type CreateInstructionAccounts = {
-  /** The address of the new account */
-  address: Signer;
-  /** The authority of the new account */
-  authority?: PublicKey | Pda;
+export type StartTokenMetadataInstructionAccounts = {
+  /** The collection metadata account of the old collection */
+  tmCollectionMetadata: PublicKey | Pda;
+  /** The new collection account; this is a pda of the old collection mint address */
+  coreCollection: PublicKey | Pda;
   /** The account paying for the storage fees */
   payer?: Signer;
+  /** The update authority for the old and new collection, if different from the payer */
+  authority?: Signer;
   /** The system program */
   systemProgram?: PublicKey | Pda;
+  /** The MPL Core program */
+  mplCore?: PublicKey | Pda;
 };
 
 // Data.
-export type CreateInstructionData = {
-  discriminator: number;
-  arg1: number;
-  arg2: number;
-};
+export type StartTokenMetadataInstructionData = { discriminator: number };
 
-export type CreateInstructionDataArgs = { arg1: number; arg2: number };
+export type StartTokenMetadataInstructionDataArgs = {};
 
-export function getCreateInstructionDataSerializer(): Serializer<
-  CreateInstructionDataArgs,
-  CreateInstructionData
+export function getStartTokenMetadataInstructionDataSerializer(): Serializer<
+  StartTokenMetadataInstructionDataArgs,
+  StartTokenMetadataInstructionData
 > {
-  return mapSerializer<CreateInstructionDataArgs, any, CreateInstructionData>(
-    struct<CreateInstructionData>(
-      [
-        ['discriminator', u8()],
-        ['arg1', u16()],
-        ['arg2', u32()],
-      ],
-      { description: 'CreateInstructionData' }
-    ),
+  return mapSerializer<
+    StartTokenMetadataInstructionDataArgs,
+    any,
+    StartTokenMetadataInstructionData
+  >(
+    struct<StartTokenMetadataInstructionData>([['discriminator', u8()]], {
+      description: 'StartTokenMetadataInstructionData',
+    }),
     (value) => ({ ...value, discriminator: 0 })
-  ) as Serializer<CreateInstructionDataArgs, CreateInstructionData>;
+  ) as Serializer<
+    StartTokenMetadataInstructionDataArgs,
+    StartTokenMetadataInstructionData
+  >;
 }
 
-// Args.
-export type CreateInstructionArgs = CreateInstructionDataArgs;
-
 // Instruction.
-export function create(
-  context: Pick<Context, 'identity' | 'payer' | 'programs'>,
-  input: CreateInstructionAccounts & CreateInstructionArgs
+export function startTokenMetadata(
+  context: Pick<Context, 'payer' | 'programs'>,
+  input: StartTokenMetadataInstructionAccounts
 ): TransactionBuilder {
   // Program ID.
   const programId = context.programs.getPublicKey(
@@ -84,35 +80,39 @@ export function create(
 
   // Accounts.
   const resolvedAccounts = {
-    address: {
+    tmCollectionMetadata: {
       index: 0,
-      isWritable: true as boolean,
-      value: input.address ?? null,
-    },
-    authority: {
-      index: 1,
       isWritable: false as boolean,
-      value: input.authority ?? null,
+      value: input.tmCollectionMetadata ?? null,
+    },
+    coreCollection: {
+      index: 1,
+      isWritable: true as boolean,
+      value: input.coreCollection ?? null,
     },
     payer: {
       index: 2,
       isWritable: true as boolean,
       value: input.payer ?? null,
     },
-    systemProgram: {
+    authority: {
       index: 3,
+      isWritable: false as boolean,
+      value: input.authority ?? null,
+    },
+    systemProgram: {
+      index: 4,
       isWritable: false as boolean,
       value: input.systemProgram ?? null,
     },
+    mplCore: {
+      index: 5,
+      isWritable: false as boolean,
+      value: input.mplCore ?? null,
+    },
   } satisfies ResolvedAccountsWithIndices;
 
-  // Arguments.
-  const resolvedArgs: CreateInstructionArgs = { ...input };
-
   // Default values.
-  if (!resolvedAccounts.authority.value) {
-    resolvedAccounts.authority.value = context.identity.publicKey;
-  }
   if (!resolvedAccounts.payer.value) {
     resolvedAccounts.payer.value = context.payer;
   }
@@ -122,6 +122,11 @@ export function create(
       '11111111111111111111111111111111'
     );
     resolvedAccounts.systemProgram.isWritable = false;
+  }
+  if (!resolvedAccounts.mplCore.value) {
+    resolvedAccounts.mplCore.value = publicKey(
+      'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d'
+    );
   }
 
   // Accounts in order.
@@ -137,12 +142,10 @@ export function create(
   );
 
   // Data.
-  const data = getCreateInstructionDataSerializer().serialize(
-    resolvedArgs as CreateInstructionDataArgs
-  );
+  const data = getStartTokenMetadataInstructionDataSerializer().serialize({});
 
   // Bytes Created On Chain.
-  const bytesCreatedOnChain = getMyAccountSize() + ACCOUNT_HEADER_SIZE;
+  const bytesCreatedOnChain = 0;
 
   return transactionBuilder([
     { instruction: { keys, programId, data }, signers, bytesCreatedOnChain },

@@ -1,5 +1,5 @@
 {
-  "name": "@metaplex-foundation/bgl-migrator",
+  "name": "@breadheads/bgl-migrator",
   "version": "0.1.0",
   "description": "Convert other standards to Metaplex Core.",
   "main": "dist/src/index.js",
@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json",
     "build:docs": "typedoc",
-    "test": "ava",
+    "test": "ava --timeout=10m",
     "bench": "rm -f output.json && ava ./dist/bench/*.js --serial --no-worker-threads",
     "lint": "eslint --ext js,ts,tsx src",
     "lint:fix": "eslint --fix --ext js,ts,tsx src",
@@ -35,6 +35,8 @@
     "@ava/typescript": "^3.0.1",
     "@metaplex-foundation/umi": "^0.8.2",
     "@metaplex-foundation/umi-bundle-tests": "^0.8.2",
+    "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
+    "@metaplex-foundation/mpl-core": "^1.0.1",
     "@solana/web3.js": "^1.73.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.46.1",

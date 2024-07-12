@@ -54,6 +54,119 @@ export class SerializationErrorError extends ProgramError {
 codeToErrorMap.set(0x2, SerializationErrorError);
 nameToErrorMap.set('SerializationError', SerializationErrorError);
 
+/** InvalidMplCoreProgram: Invalid MPL Core Program */
+export class InvalidMplCoreProgramError extends ProgramError {
+  override readonly name: string = 'InvalidMplCoreProgram';
+
+  readonly code: number = 0x3; // 3
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid MPL Core Program', program, cause);
+  }
+}
+codeToErrorMap.set(0x3, InvalidMplCoreProgramError);
+nameToErrorMap.set('InvalidMplCoreProgram', InvalidMplCoreProgramError);
+
+/** InvalidOldCollectionAccountOwner: Invalid old collection account owner */
+export class InvalidOldCollectionAccountOwnerError extends ProgramError {
+  override readonly name: string = 'InvalidOldCollectionAccountOwner';
+
+  readonly code: number = 0x4; // 4
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid old collection account owner', program, cause);
+  }
+}
+codeToErrorMap.set(0x4, InvalidOldCollectionAccountOwnerError);
+nameToErrorMap.set(
+  'InvalidOldCollectionAccountOwner',
+  InvalidOldCollectionAccountOwnerError
+);
+
+/** AuthorityMustSign: Authority must sign */
+export class AuthorityMustSignError extends ProgramError {
+  override readonly name: string = 'AuthorityMustSign';
+
+  readonly code: number = 0x5; // 5
+
+  constructor(program: Program, cause?: Error) {
+    super('Authority must sign', program, cause);
+  }
+}
+codeToErrorMap.set(0x5, AuthorityMustSignError);
+nameToErrorMap.set('AuthorityMustSign', AuthorityMustSignError);
+
+/** UpdateAuthorityMustSign: Update authority must sign */
+export class UpdateAuthorityMustSignError extends ProgramError {
+  override readonly name: string = 'UpdateAuthorityMustSign';
+
+  readonly code: number = 0x6; // 6
+
+  constructor(program: Program, cause?: Error) {
+    super('Update authority must sign', program, cause);
+  }
+}
+codeToErrorMap.set(0x6, UpdateAuthorityMustSignError);
+nameToErrorMap.set('UpdateAuthorityMustSign', UpdateAuthorityMustSignError);
+
+/** InvalidNewCollectionAccount: Invalid new collection account */
+export class InvalidNewCollectionAccountError extends ProgramError {
+  override readonly name: string = 'InvalidNewCollectionAccount';
+
+  readonly code: number = 0x7; // 7
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid new collection account', program, cause);
+  }
+}
+codeToErrorMap.set(0x7, InvalidNewCollectionAccountError);
+nameToErrorMap.set(
+  'InvalidNewCollectionAccount',
+  InvalidNewCollectionAccountError
+);
+
+/** InvalidTokenMetadataProgram: Invalid Token Metadata Program */
+export class InvalidTokenMetadataProgramError extends ProgramError {
+  override readonly name: string = 'InvalidTokenMetadataProgram';
+
+  readonly code: number = 0x8; // 8
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid Token Metadata Program', program, cause);
+  }
+}
+codeToErrorMap.set(0x8, InvalidTokenMetadataProgramError);
+nameToErrorMap.set(
+  'InvalidTokenMetadataProgram',
+  InvalidTokenMetadataProgramError
+);
+
+/** IncorrectUpdateAuthority: Incorrect Update Authority */
+export class IncorrectUpdateAuthorityError extends ProgramError {
+  override readonly name: string = 'IncorrectUpdateAuthority';
+
+  readonly code: number = 0x9; // 9
+
+  constructor(program: Program, cause?: Error) {
+    super('Incorrect Update Authority', program, cause);
+  }
+}
+codeToErrorMap.set(0x9, IncorrectUpdateAuthorityError);
+nameToErrorMap.set('IncorrectUpdateAuthority', IncorrectUpdateAuthorityError);
+
+/** NumericalOverflow: Numerical Overflow */
+export class NumericalOverflowError extends ProgramError {
+  override readonly name: string = 'NumericalOverflow';
+
+  readonly code: number = 0xa; // 10
+
+  constructor(program: Program, cause?: Error) {
+    super('Numerical Overflow', program, cause);
+  }
+}
+codeToErrorMap.set(0xa, NumericalOverflowError);
+nameToErrorMap.set('NumericalOverflow', NumericalOverflowError);
+
 /**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
